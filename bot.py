@@ -113,7 +113,7 @@ def read_receipt_with_claude(image_bytes: bytes) -> dict | None:
 
 # ── Helpers ──────────────────────────────────────────────────────
 def fmt(n):
-    return f"{float(n):,.0f}".replace(',', ' ')
+    return f"{float(n):,.2f}"
 
 def is_allowed(update: Update) -> bool:
     if not ALLOWED_IDS:
@@ -123,7 +123,7 @@ def is_allowed(update: Update) -> bool:
 def expense_text(data: dict) -> str:
     return (
         f"🏪 *{data.get('store', '?')}*\n"
-        f"💰 {fmt(data.get('amount', 0))} ₸\n"
+        f"💰 {fmt(data.get('amount', 0))} €\n"
         f"📂 {data.get('category', 'Другое')}\n"
         f"📅 {data.get('date', datetime.now().strftime('%Y-%m-%d'))}"
         + (f"\n💬 {data['comment']}" if data.get('comment') else '')
@@ -156,8 +156,8 @@ async def cmd_summary(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lines = [f'📊 *{month_name}* — {count} записей\n']
         for cat, amt in sorted(by_cat.items(), key=lambda x: -x[1]):
             bar = '█' * int(amt / total * 10) if total else ''
-            lines.append(f'{cat}: *{fmt(amt)} ₸* {bar}')
-        lines.append(f'\n💰 *Итого: {fmt(total)} ₸*')
+            lines.append(f'{cat}: *{fmt(amt)} €* {bar}')
+        lines.append(f'\n💰 *Итого: {fmt(total)} €*')
         await msg.edit_text('\n'.join(lines), parse_mode='Markdown')
     except Exception as e:
         await msg.edit_text(f'❌ {e}')
@@ -171,7 +171,7 @@ async def cmd_last(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         last.reverse()
         lines = ['📋 *Последние записи:*\n']
         for r in last:
-            lines.append(f"• {r['Магазин / Описание']} — *{fmt(r['Сумма'])} ₸* ({r['Категория']})")
+            lines.append(f"• {r['Магазин / Описание']} — *{fmt(r['Сумма'])} €* ({r['Категория']})")
         await update.message.reply_text('\n'.join(lines), parse_mode='Markdown')
     except Exception as e:
         await update.message.reply_text(f'❌ {e}')
@@ -227,7 +227,7 @@ async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             return
         try:
             sheet_add(data['date'], data['store'], data['amount'], data['category'], data.get('comment', ''))
-            await q.edit_message_text(f'✅ Записано: *{data["store"]}* — {fmt(data["amount"])} ₸', parse_mode='Markdown')
+            await q.edit_message_text(f'✅ Записано: *{data["store"]}* — {fmt(data["amount"])} €', parse_mode='Markdown')
             ctx.user_data.pop('pending', None)
         except Exception as e:
             await q.edit_message_text(f'❌ Ошибка записи: {e}')
